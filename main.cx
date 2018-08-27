@@ -1,0 +1,383 @@
+package main
+
+// ***************************
+// STRUCTS
+// ***************************
+type Window struct {
+    Height i32
+    Width i32
+}
+
+type Ball struct {
+    x f32
+    y f32
+    vx f32
+    vy f32
+    gravity f32
+    radius f32
+}
+
+type Pipe struct {
+    x f32
+    y f32
+    vx f32
+    vy f32
+    h f32
+    w f32
+    topPipe bool
+}
+
+// ***************************
+// Declare Game Components
+// ***************************
+var ball Ball
+var ballGravity f32 = 0.001
+var ballStartX f32 = -0.5
+
+// Pipe
+var randNum f32
+var pipeGap f32 = 0.4
+var pipeWidth f32 = 0.13
+var pipeSpeed f32 = -0.008
+var pTop [3]Pipe
+var pBottom [3]Pipe
+
+// Mouse Position
+var xPos f64
+var yPos f64
+
+// *****************************************************************************************************
+// WINDOW SETTING AND OPENGL SETTINGS
+// *****************************************************************************************************
+func initGlfw (mw Window) {
+    // Initiate glfw (Graphic Library Framework)
+    // to manage OpenGl Window Context
+
+    glfw.Init()
+    glfw.WindowHint(glfw.Resizable, glfw.False)
+    glfw.CreateWindow("window", mw.Width, mw.Height, "PixelBird-cx")
+    glfw.MakeContextCurrent("window")
+}
+
+func initOpenGL() (program i32) {
+    gl.Init()
+    gl.Enable(gl.BLEND)
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+    program = gl.CreateProgram()
+    gl.LinkProgram(program)
+}
+
+// *****************************************************************************************************
+// RENDER AND DRAW
+// *****************************************************************************************************
+// gl.Vertex2f(x, y)
+// gl.Vertex3f(x, y, z)
+// gl.Color3f(r, g, b)
+// gl.Color4f(r, g, b, alpha)
+// http://www.december.com/html/spec/colorper.html
+
+func drawBall(ball Ball) () {
+    var full_angle f32
+    full_angle = f32.mul(2.0, 3.141592654)
+
+    var x f32
+    var y f32
+
+    gl.Begin(gl.POLYGON)
+    gl.Color3f(1.0, 1.0, 1.0)
+
+    // Loop i amount of times using formula to calculate x and y with unit circle.
+    var i f32
+    for i = 0.0; f32.lt(i, 200.0); i = f32.add(i, 1.0) {
+        x = f32.add(ball.x, f32.mul(ball.radius, f32.cos(f32.div(f32.mul(i, full_angle), 200.0))))
+        y = f32.add(ball.y, f32.mul(ball.radius, f32.sin(f32.div(f32.mul(i, full_angle), 200.0))))
+        gl.Vertex2f(x, y)
+    }
+    gl.End()
+}
+
+func drawBG() {
+    // http://www.falloutsoftware.com/tutorials/gl/gl3.htm
+    gl.Begin(gl.POLYGON)
+    gl.Color3f(0.0, 0.0, 0.0)
+    gl.Vertex2f(-1.0, -1.0)
+    gl.Vertex2f(-1.0, 1.0)
+    gl.Vertex2f(1.0, 1.0)
+    gl.Vertex2f(1.0, -1.0)
+    gl.End()
+}
+
+func drawPipe(p Pipe) () {
+    gl.Begin(gl.POLYGON)
+    gl.Color3f(0.0, 0.41, 0.55)
+
+    // To draw a rectange. We add two trianges together
+    // Top Triangle
+    gl.Vertex2f(p.x, p.y) // Top Left Corner
+    gl.Vertex2f(f32.add(p.x, p.w),p.y) // Top Right Corner
+    gl.Vertex2f(p.x, p.h) // Bottom Left Corner
+
+    // Bottom Triangle
+    gl.Vertex2f(p.x, p.h) // Bottom Left Corner
+    gl.Vertex2f(f32.add(p.x, p.w), p.h) // Bottom Right Corner
+    gl.Vertex2f(f32.add(p.x, p.w), p.y) // Top Right Corner
+
+    gl.End()
+}
+
+// *****************************************************************************************************
+// HELPER FUNCTIONS
+// *****************************************************************************************************
+
+// Random Number between -0.6 to 0.6
+func randNumGenerator() (rNum f32){
+    var sign i32
+    sign = i32.rand(0,2) // Random Number between 0, 1
+
+    if sign == 1 {
+        rNum = f32.div(i32.rand(1, 6), 10)
+    } else {
+        rNum = f32.div(i32.rand(1, 6), 10)
+        rNum = f32.mul(rNum, -1.0)
+    }
+
+}
+
+// *****************************************************************************************************
+// COLLISION DETECTION
+// *****************************************************************************************************
+func collision(ball Ball, p Pipe) (){
+
+    // ********************************
+    // BALL COLLIDING WITH TOP PIPE
+    // ********************************
+    if p.topPipe == true {
+        if (ball.x + ball.radius) >= p.x && (ball.x - ball.radius) <= (p.x + p.w) && (ball.y - radius) >= p.h {
+            reset()
+            str.print("Top Pipe")
+        }
+    // ********************************
+    // BALL COLLIDING WITH BOTTOM PIPE ------------------------------- TOOOO DO FIX TOMORROW
+    // ********************************
+    } else if p.topPipe == false {
+        if (ball.x + ball.radius) >= p.x && (ball.x - ball.radius) <= (p.x + p.w) && (ball.y + radius) <= p.h {
+            reset()
+            str.print("Bottom Pipe")
+        }
+    }
+}
+
+func reset() {
+    // ****************
+    // RESET BALL
+    // ****************
+    ball.x = ballStartX
+    ball.y = 0.0
+    ball.vx = 0.0
+    ball.vy = 0.0
+    ball.gravity = ballGravity
+
+    // ****************
+    // RESET PIPE
+    // ****************
+    var pStartX  f32 = 0.5
+    var p2pDist f32 = 0.7
+
+    for k := 0; k < len(pTop); k++{
+        pTop[k].x = pStartX
+        pBottom[k].x = pStartX
+        pStartX = pStartX + p2pDist
+    }
+}
+
+// *****************************************************************************************************
+// KEYBOARD EVENTS - http://www.glfw.org/docs/latest/group__keys.html
+// *****************************************************************************************************
+// SPACEBAR == 32 and UP KEY == 265
+func keyPressed(window str, key i32, scancode i32, action i32, mods i32) () {
+    if key == 32 && action == 1 || key == 265 && action == 1{
+        // f32.print(ball.y)
+        ball.vy = f32.sub(ball.vy, -0.02)
+    }
+}
+
+// *****************************************************************************************************
+// GAME STATES
+// *****************************************************************************************************
+func startGame(mw Window) () {
+
+    // ***************************
+    // DECLARATION
+    // ***************************
+    var program i32
+    var pStartX  f32 = 0.5 // Initial point of where pipe starts
+    var p2pDist f32 = 0.7 // The distance between each pipes.
+
+    // ***************************
+    // Init
+    // ***************************
+    initGlfw(mw)
+    program = initOpenGL()
+
+    // ***************************
+    // Initialize Instances
+    // OpenGL uses X, Y, Z coordinates where vertex relative to center of window ranges between -1 and 1.
+    // Center of screen would have coordinates of (0, 0)
+    // ***************************
+
+    ball = Ball{
+        x: ballStartX,
+        y: 0.0,
+        vx: 0.00, // Velocity in x direction
+        vy: 0.00, // Velocity in y direction
+        gravity: ballGravity,
+        radius: 0.030}
+
+    // **********************
+    // TOP AND BOTTOM PIPES
+    // **********************
+    for k := 0; k < len(pTop); k++{
+
+        // Generates a random value from -0.6 to 0.6
+        randNum = randNumGenerator()
+
+        pTop[k] = Pipe{
+            x: pStartX,
+            y: 1.0,
+            vx: pipeSpeed,
+            vy: 0.00,
+            h: randNum, // Pipe Height
+            w: pipeWidth,
+            topPipe: true}
+
+        pBottom[k] = Pipe{
+            x: pStartX,
+            y: -1.0,
+            vx: pipeSpeed,
+            vy: 0.00,
+            h: f32.sub(randNum, pipeGap),
+            w: pipeWidth,
+            topPipe: false}
+
+        pStartX = pStartX + p2pDist
+    }
+
+
+     // ***************************
+    // Main Loop for render and gameplay
+     // ***************************
+    for bool.not(glfw.ShouldClose("window")) {
+        gl.Clear(gl.COLOR_BUFFER_BIT)
+        gl.UseProgram(program)
+
+        // *********************
+        // MOUSE COORDINATES
+        // *********************
+        // xPos, yPos := glfw.GetCursorPos("window")
+        // glfw.SetMouseButtonCallback("window", "mouseButton") --> Doesn't work yet
+
+        // *********************
+        // KEYBOARD COORDINATES
+        // *********************
+        glfw.SetKeyCallback("window", "keyPressed")
+
+        // *********************
+        // COLLISION DETECTION
+        // *********************
+
+        for k:= 0; k < len(pTop); k++{
+            collision(ball, pTop[k])
+            collision(ball, pBottom[k])
+        }
+
+        // ***********************************************************
+        // Background Drawing
+        // ***********************************************************
+        drawBG()
+
+        // ***********************************************************
+        // Draw Ball
+        // ***********************************************************
+
+        // CIELING
+        if f32.lteq(ball.y, -1.0) {
+            // ball.vy = f32.abs(ball.vy) // If ball hits floor, bounce back
+            reset()
+
+        // FLOOR
+        } else if f32.gteq(ball.y, 1.0) {
+            // ball.vy = (-1 * ball.vy) // If ball hits top, bounce to bottom
+            reset()
+
+        // Let gravity do the work on the ball
+        } else {
+            ball.vy = f32.sub(ball.vy, ball.gravity)
+        }
+
+        ball.x = f32.add(ball.x, ball.vx)
+        ball.y = f32.add(ball.y, ball.vy)
+        drawBall(ball)
+
+        // ***********************************************************
+        // Draw Pipe
+        // ***********************************************************
+
+        randNum = randNumGenerator()
+
+        // *****************
+        // DRAW TOP PIPES
+        // *****************
+        for k := 0; k < len(pTop); k++{
+            if f32.lteq(pTop[k].x, f32.sub(-1.0, pipeWidth)) { // If pipe goes pass left side of screen, restart onto the right
+                pTop[k].x = 1.0
+                pTop[k].h = randNum
+            } else {
+                pTop[k].x = f32.add(pTop[k].x, pTop[k].vx)
+            }
+            drawPipe(pTop[k])
+
+            if f32.lteq(pBottom[k].x,  f32.sub(-1.0, pipeWidth)) {
+                pBottom[k].x = 1.0
+                pBottom[k].h = f32.sub(randNum, pipeGap)
+            } else {
+                pBottom[k].x = f32.add(pBottom[k].x, pBottom[k].vx)
+            }
+            drawPipe(pBottom[k])
+        }
+
+        // ***********************************************************
+        // Refresh Components
+        // PollEvents will listen for key events such as keystrokes, etc
+        // SwapBuffer: GLFW uses double buffer. It kind of means that there
+        // is two canvas. The front buffer is the canvas that is being displayed
+        // while the back buffer is the invisible canvas you are drawing/rendering to.
+        // You would put this invisible canvas to the front for display once you are
+        // ready by calling SwapBuffer.
+        // ***********************************************************
+        glfw.PollEvents()
+        glfw.SwapBuffers("window")
+    }
+}
+
+// *****************************************************************************************************
+// MAIN FUNCTION
+// *****************************************************************************************************
+func main () {
+
+    var myWindow Window
+
+    myWindow = Window{
+        Height: 748,
+        Width: 1024}
+
+    str.print("Let there be light!")
+    startGame(myWindow)
+}
+
+
+
+
+
+
+
+
