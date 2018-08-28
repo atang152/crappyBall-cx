@@ -157,7 +157,7 @@ func collision(ball Ball, p Pipe) (){
             str.print("Top Pipe")
         }
     // ********************************
-    // BALL COLLIDING WITH BOTTOM PIPE ------------------------------- TOOOO DO FIX TOMORROW
+    // BALL COLLIDING WITH BOTTOM PIPE
     // ********************************
     } else if p.topPipe == false {
         if (ball.x + ball.radius) >= p.x && (ball.x - ball.radius) <= (p.x + p.w) && (ball.y + radius) <= p.h {
@@ -373,11 +373,3 @@ func main () {
     str.print("Let there be light!")
     startGame(myWindow)
 }
-
-
-
-
-
-
-
-
