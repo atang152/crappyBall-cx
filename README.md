@@ -53,3 +53,7 @@ Alot of things. The current codebase is utter crap and needs to be completely re
 2. Refractor game into a more Entity-Component-System architecture
 3. Use VAO/VBO for rendering instead of OpenGL primitives
 4. Figure out how to build game into binary
+
+# Hi Sudo. This is Anto. Just doing a commit here to let you it's me. Thanks!
+
+
