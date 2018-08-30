@@ -31,17 +31,19 @@ Once installation is completed, you should test your installation by running `cx
 ### Cloning the CrappyBall-cx repo
 After all dependencies are installed and [CX](https://github.com/skycoin/cx) runs correctly. Clone the following depository by running:
 
-`git clone https://github.com/atang152/crappyBall-cx.git`
+```git clone https://github.com/atang152/crappyBall-cx.git```
 
 Navigate to cloned directory:
 
-`cd crappyBall-cx/`
+```cd crappyBall-cx/```
 
 # Running the game
 Type in the following command when you are in the crappyBall-cx folder.
 
 ```cx main.cx```
+
 or
+
 ```cx *.cx```
 
 # TO DO...
