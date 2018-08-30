@@ -152,7 +152,7 @@ func collision(ball Ball, p Pipe) (){
     // BALL COLLIDING WITH TOP PIPE
     // ********************************
     if p.topPipe == true {
-        if (ball.x + ball.radius) >= p.x && (ball.x - ball.radius) <= (p.x + p.w) && (ball.y - radius) >= p.h {
+        if (ball.x + ball.radius) >= p.x && (ball.x - ball.radius) <= (p.x + p.w) && (ball.y - ball.radius) >= p.h {
             reset()
             str.print("Top Pipe")
         }
@@ -160,7 +160,7 @@ func collision(ball Ball, p Pipe) (){
     // BALL COLLIDING WITH BOTTOM PIPE
     // ********************************
     } else if p.topPipe == false {
-        if (ball.x + ball.radius) >= p.x && (ball.x - ball.radius) <= (p.x + p.w) && (ball.y + radius) <= p.h {
+        if (ball.x + ball.radius) >= p.x && (ball.x - ball.radius) <= (p.x + p.w) && (ball.y + ball.radius) <= p.h {
             reset()
             str.print("Bottom Pipe")
         }
