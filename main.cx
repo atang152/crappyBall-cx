@@ -8,13 +8,20 @@ type Window struct {
     Width i32
 }
 
-type Ball struct {
+type Sprite struct{
+    x1 f32
+    x2 f32
+    y1 f32
+    y2 f32
+    spriteSheet i32
+}
+
+type Bird struct{
     x f32
     y f32
     vx f32
     vy f32
     gravity f32
-    radius f32
 }
 
 type Pipe struct {
@@ -28,23 +35,63 @@ type Pipe struct {
 }
 
 // ***************************
-// Declare Game Components
+// Declare Game Components -- REFRACTOR REFRACTOR!!!
 // ***************************
-var ball Ball
-var ballGravity f32 = 0.001
-var ballStartX f32 = -0.5
+
+// Sprites Map
+var spriteMap i32
+var spriteMapWidth i32 = 256
+var spriteMapHeight i32 = 128
+
+// Bird Animation and Sprites
+var frame f64
+var birdScaleX f32 = 0.05
+var birdScaleY f32 = 0.05
+var spriteBird_Down Sprite
+var spriteBird_Mid Sprite
+var spriteBird_Up Sprite
+var birdAnimation [2]Sprite
+
+// Pipe Sprite
+var spritePipeBody Sprite
+var spritePipeTop Sprite
+var pSkullHeightTop f32 = -0.07
+var pSkullHeightBottom f32 = 0.07
+
+// Sky Sprite
+var spriteSky Sprite
+var skyScaleX f32 = 1.0
+var skyScaleY f32 = 1.0
+var skyStartX f32 = 0.0
+var skyStartY f32 = 1.0
+
+// Grass Sprite
+var spriteGrass Sprite
+var grassScaleX f32 = 2.0
+var grassScaleY f32 = 0.1
+var grassStartX f32 = 1.0
+var grassStartY f32 = -0.9
+
+// Background Sprite
+var spriteBackground Sprite
+var bgScaleX f32 = 1.0
+var bgScaleY f32 = 0.4
+var bgStartX f32 = 0.0
+var bgStartY f32 = -0.40
+
+// Bird Movements
+var bird Bird
+var birdGravity f32 = 0.001
+var birdStartX f32 = -0.75
+var birdStartY f32 = 0.5
 
 // Pipe
 var randNum f32
-var pipeGap f32 = 0.4
-var pipeWidth f32 = 0.13
-var pipeSpeed f32 = -0.008
-var pTop [3]Pipe
+var pipeGap f32 = 0.5
+var pipeWidth f32 = 0.10
+var pipeSpeed f32 = -0.009
+var pTop [3]Pipe // Change array size to change number of pipes
 var pBottom [3]Pipe
-
-// Mouse Position
-var xPos f64
-var yPos f64
 
 // *****************************************************************************************************
 // WINDOW SETTING AND OPENGL SETTINGS
@@ -68,114 +115,49 @@ func initOpenGL() (program i32) {
 }
 
 // *****************************************************************************************************
-// RENDER AND DRAW
-// *****************************************************************************************************
-// gl.Vertex2f(x, y)
-// gl.Vertex3f(x, y, z)
-// gl.Color3f(r, g, b)
-// gl.Color4f(r, g, b, alpha)
-// http://www.december.com/html/spec/colorper.html
-
-func drawBall(ball Ball) () {
-    var full_angle f32
-    full_angle = f32.mul(2.0, 3.141592654)
-
-    var x f32
-    var y f32
-
-    gl.Begin(gl.POLYGON)
-    gl.Color3f(1.0, 1.0, 1.0)
-
-    // Loop i amount of times using formula to calculate x and y with unit circle.
-    var i f32
-    for i = 0.0; f32.lt(i, 200.0); i = f32.add(i, 1.0) {
-        x = f32.add(ball.x, f32.mul(ball.radius, f32.cos(f32.div(f32.mul(i, full_angle), 200.0))))
-        y = f32.add(ball.y, f32.mul(ball.radius, f32.sin(f32.div(f32.mul(i, full_angle), 200.0))))
-        gl.Vertex2f(x, y)
-    }
-    gl.End()
-}
-
-func drawBG() {
-    // http://www.falloutsoftware.com/tutorials/gl/gl3.htm
-    gl.Begin(gl.POLYGON)
-    gl.Color3f(0.0, 0.0, 0.0)
-    gl.Vertex2f(-1.0, -1.0)
-    gl.Vertex2f(-1.0, 1.0)
-    gl.Vertex2f(1.0, 1.0)
-    gl.Vertex2f(1.0, -1.0)
-    gl.End()
-}
-
-func drawPipe(p Pipe) () {
-    gl.Begin(gl.POLYGON)
-    gl.Color3f(0.0, 0.41, 0.55)
-
-    // To draw a rectange. We add two trianges together
-    // Top Triangle
-    gl.Vertex2f(p.x, p.y) // Top Left Corner
-    gl.Vertex2f(f32.add(p.x, p.w),p.y) // Top Right Corner
-    gl.Vertex2f(p.x, p.h) // Bottom Left Corner
-
-    // Bottom Triangle
-    gl.Vertex2f(p.x, p.h) // Bottom Left Corner
-    gl.Vertex2f(f32.add(p.x, p.w), p.h) // Bottom Right Corner
-    gl.Vertex2f(f32.add(p.x, p.w), p.y) // Top Right Corner
-
-    gl.End()
-}
-
-// *****************************************************************************************************
 // HELPER FUNCTIONS
 // *****************************************************************************************************
 
-// Random Number between -0.6 to 0.6
+// Random Number between 0.3 to 1.3
 func randNumGenerator() (rNum f32){
-    var sign i32
-    sign = i32.rand(0,2) // Random Number between 0, 1
-
-    if sign == 1 {
-        rNum = f32.div(i32.rand(1, 6), 10)
-    } else {
-        rNum = f32.div(i32.rand(1, 6), 10)
-        rNum = f32.mul(rNum, -1.0)
-    }
-
+    rNum = f32.div(i32.rand(3, 13), 10)
 }
 
 // *****************************************************************************************************
 // COLLISION DETECTION
 // *****************************************************************************************************
-func collision(ball Ball, p Pipe) (){
+func collision(bird Bird, p Pipe) (){
 
     // ********************************
-    // BALL COLLIDING WITH TOP PIPE
+    // bird COLLIDING WITH TOP PIPE
     // ********************************
     if p.topPipe == true {
-        if (ball.x + ball.radius) >= p.x && (ball.x - ball.radius) <= (p.x + p.w) && (ball.y - ball.radius) >= p.h {
+        if bird.x >= p.x && bird.x <= (p.x + p.w) && f32.sub(f32.add(bird.y, 1.0),pSkullHeightTop) >= f32.sub(2.0, p.h) {
             reset()
             str.print("Top Pipe")
+            //f32.print(f32.add(bird.y, 1.0))
         }
     // ********************************
-    // BALL COLLIDING WITH BOTTOM PIPE
+    // bird COLLIDING WITH BOTTOM PIPE
     // ********************************
     } else if p.topPipe == false {
-        if (ball.x + ball.radius) >= p.x && (ball.x - ball.radius) <= (p.x + p.w) && (ball.y + ball.radius) <= p.h {
+        if bird.x >= p.x && bird.x <= (p.x + p.w) && f32.sub(f32.add(bird.y, 1.0),pSkullHeightBottom) <= p.h {
             reset()
             str.print("Bottom Pipe")
+            //f32.print(f32.add(bird.y, 1.0))
         }
     }
 }
 
 func reset() {
     // ****************
-    // RESET BALL
+    // RESET BIRD
     // ****************
-    ball.x = ballStartX
-    ball.y = 0.0
-    ball.vx = 0.0
-    ball.vy = 0.0
-    ball.gravity = ballGravity
+    bird.x = birdStartX
+    bird.y = 0.0
+    bird.vx = 0.0
+    bird.vy = 0.0
+    bird.gravity = birdGravity
 
     // ****************
     // RESET PIPE
@@ -191,13 +173,66 @@ func reset() {
 }
 
 // *****************************************************************************************************
+// RENDER AND DRAW
+// Figure out how to scale appropriately...
+// *****************************************************************************************************
+// gl.Vertex2f(x, y)
+// gl.Vertex3f(x, y, z)
+// gl.Color3f(r, g, b)
+// gl.Color4f(r, g, b, alpha)
+// http://www.december.com/html/spec/colorper.html
+
+func draw(xCoord f32, yCoord f32, scaleX f32, scaleY f32, texture i32, sprite Sprite) () {
+// https://stackoverflow.com/questions/5532595/how-do-opengl-texture-coordinates-work
+
+    gl.LoadIdentity()
+    gl.Translatef(xCoord, yCoord, 0.0) // x-coordinates, y-coordinates, z-coordinates
+    gl.Rotatef(0.0, 0.0, 0.0, 1.0) // Rotate along the z-axis
+    gl.BindTexture(gl.TEXTURE_2D, spriteMap)
+    gl.Scalef(scaleX, scaleY, 0.0)
+
+    gl.Begin(gl.QUADS)
+    gl.TexCoord2f(sprite.x1, sprite.y2)
+    gl.Vertex3f(-1.0, -1.0, 0.0)
+    gl.TexCoord2f(sprite.x1, sprite.y1)
+    gl.Vertex3f(-1.0, 1.0, 0.0)
+    gl.TexCoord2f(sprite.x2, sprite.y1)
+    gl.Vertex3f(1.0, 1.0, 0.0)
+    gl.TexCoord2f(sprite.x2, sprite.y2)
+    gl.Vertex3f(1.0, -1.0, 0.0)
+    gl.End()
+}
+
+// *****************************************************************************************************
+// SPRITE LOADER
+// *****************************************************************************************************
+func scale (x i32, max i32) (out f32) {
+    out = f32.div(i32.f32(x), i32.f32(max))
+}
+
+func setSprite(s Sprite, x1 i32, x2 i32, y1 i32, y2 i32, W i32, H i32, spriteMap i32) (spriteRegion Sprite) {
+    // x1 = bottom left vertices of the Sprite
+    // x2 = bottom right vertices of the Sprite
+    // y1 = top left vertices of the Sprite
+    // y2 = top right vertices of the Sprite
+    // W = Width of the entire Sprite Map
+    // H = Height of the entire Sprite Map
+
+    s.x1 = scale(x1, W) // x1 divided by Sprite Map Width
+    s.x2 = scale(x2, W) // x2 divided by Sprite Map Width
+    s.y1 = scale(y1, H) // y1 divided by Sprite Map Height
+    s.y2 = scale(y2, H) // y2 divided by Sprite Map Height
+    s.spriteSheet = spriteMap
+    spriteRegion = s
+}
+
+// *****************************************************************************************************
 // KEYBOARD EVENTS - http://www.glfw.org/docs/latest/group__keys.html
 // *****************************************************************************************************
 // SPACEBAR == 32 and UP KEY == 265
 func keyPressed(window str, key i32, scancode i32, action i32, mods i32) () {
     if key == 32 && action == 1 || key == 265 && action == 1{
-        // f32.print(ball.y)
-        ball.vy = f32.sub(ball.vy, -0.02)
+        bird.vy = f32.sub(bird.vy, -0.02)
     }
 }
 
@@ -210,43 +245,45 @@ func startGame(mw Window) () {
     // DECLARATION
     // ***************************
     var program i32
-    var pStartX  f32 = 0.5 // Initial point of where pipe starts
-    var p2pDist f32 = 0.7 // The distance between each pipes.
+    var wd str
 
     // ***************************
     // Init
     // ***************************
     initGlfw(mw)
     program = initOpenGL()
+    var pStartX  f32 = 0.5 // Initial point of where pipe starts
+    var p2pDist f32 = 0.7 // The distance between each pipes.
+    var topPipeHeight f32
+    var bottomPipeHeight f32
 
     // ***************************
     // Initialize Instances
     // OpenGL uses X, Y, Z coordinates where vertex relative to center of window ranges between -1 and 1.
     // Center of screen would have coordinates of (0, 0)
     // ***************************
-
-    ball = Ball{
-        x: ballStartX,
-        y: 0.0,
+    bird = Bird{
+        x: birdStartX,
+        y: birdStartY,
         vx: 0.00, // Velocity in x direction
         vy: 0.00, // Velocity in y direction
-        gravity: ballGravity,
-        radius: 0.030}
+        gravity: birdGravity}
 
     // **********************
     // TOP AND BOTTOM PIPES
     // **********************
     for k := 0; k < len(pTop); k++{
-
-        // Generates a random value from -0.6 to 0.6
         randNum = randNumGenerator()
+
+        topPipeHeight = randNum
+        bottomPipeHeight = f32.sub(2.0,f32.add(topPipeHeight, pipeGap))
 
         pTop[k] = Pipe{
             x: pStartX,
             y: 1.0,
             vx: pipeSpeed,
             vy: 0.00,
-            h: randNum, // Pipe Height
+            h: topPipeHeight, // Pipe Height
             w: pipeWidth,
             topPipe: true}
 
@@ -255,26 +292,52 @@ func startGame(mw Window) () {
             y: -1.0,
             vx: pipeSpeed,
             vy: 0.00,
-            h: f32.sub(randNum, pipeGap),
+            h: bottomPipeHeight,
             w: pipeWidth,
             topPipe: false}
 
         pStartX = pStartX + p2pDist
     }
 
+    // ***************************
+    // LOAD SPRITE MAP
+    // ***************************
+    wd = os.GetWorkingDirectory()
+    spriteMap = gl.NewTexture(str.concat(wd, "textures/texture.png"))
+
+    // ********************************
+    // RETRIEVE SPRITE REGION FOR BIRD
+    // ********************************
+    // Recall that setSprite(s Sprite, x1 i32, x2 i32, y1 i32, y2 i32, W i32, H i32, spriteMap i32)
+    spriteBird_Down = setSprite(spriteBird_Down, 136, 153, 0, 12, spriteMapWidth, spriteMapHeight, spriteMap)
+    spriteBird_Mid = setSprite(spriteBird_Mid, 154, 170, 0, 12, spriteMapWidth, spriteMapHeight, spriteMap)
+    spriteBird_Up = setSprite(spriteBird_Up, 171, 187, 0, 12, spriteMapWidth, spriteMapHeight, spriteMap)
+
+    birdAnimation[0] = spriteBird_Down
+    birdAnimation[1] = spriteBird_Mid
+    birdAnimation[2] = spriteBird_Up
+
+    // ********************************
+    // RETRIEVE SPRITE REGION FOR BACKGROUND, SKY AND GRASS
+    // ********************************
+    spriteBackground = setSprite(spriteBackground, 0, 136, 0, 43, spriteMapWidth, spriteMapHeight, spriteMap)
+    spriteSky = setSprite(spriteSky, 0, 1, 0, 1, spriteMapWidth, spriteMapHeight, spriteMap)
+    spriteGrass = setSprite(spriteGrass, 0, 165, 43, 54, spriteMapWidth, spriteMapHeight, spriteMap)
+
+    // ********************************
+    // RETRIEVE SPRITE REGION FOR PIPE
+    // ********************************
+    spritePipeBody = setSprite(spritePipeBody, 136, 157, 16, 19, spriteMapWidth, spriteMapHeight, spriteMap)
+    spritePipeTop = setSprite(spritePipeTop, 192, 216, 0, 14, spriteMapWidth, spriteMapHeight, spriteMap)
 
      // ***************************
     // Main Loop for render and gameplay
      // ***************************
     for bool.not(glfw.ShouldClose("window")) {
-        gl.Clear(gl.COLOR_BUFFER_BIT)
         gl.UseProgram(program)
-
-        // *********************
-        // MOUSE COORDINATES
-        // *********************
-        // xPos, yPos := glfw.GetCursorPos("window")
-        // glfw.SetMouseButtonCallback("window", "mouseButton") --> Doesn't work yet
+        gl.ClearColor(0.0, 0.0, 0.0, 1.0)
+        gl.Clear(gl.COLOR_BUFFER_BIT)
+        gl.Enable(gl.TEXTURE_2D)
 
         // *********************
         // KEYBOARD COORDINATES
@@ -284,66 +347,96 @@ func startGame(mw Window) () {
         // *********************
         // COLLISION DETECTION
         // *********************
-
         for k:= 0; k < len(pTop); k++{
-            collision(ball, pTop[k])
-            collision(ball, pBottom[k])
+            collision(bird, pTop[k])
+            collision(bird, pBottom[k])
         }
 
         // ***********************************************************
-        // Background Drawing
+        // Draw Background, Sky and Grass
         // ***********************************************************
-        drawBG()
+        draw(bgStartX, bgStartY, bgScaleX, bgScaleY, spriteMap, spriteBackground)
+        draw(skyStartX, skyStartY, skyScaleX, skyScaleY, spriteMap, spriteSky)
 
-        // ***********************************************************
-        // Draw Ball
-        // ***********************************************************
-
-        // CIELING
-        if f32.lteq(ball.y, -1.0) {
-            // ball.vy = f32.abs(ball.vy) // If ball hits floor, bounce back
-            reset()
-
-        // FLOOR
-        } else if f32.gteq(ball.y, 1.0) {
-            // ball.vy = (-1 * ball.vy) // If ball hits top, bounce to bottom
-            reset()
-
-        // Let gravity do the work on the ball
+        if f32.lteq(grassStartX, -1.0){
+            grassStartX = 1.0
         } else {
-            ball.vy = f32.sub(ball.vy, ball.gravity)
+            grassStartX = f32.add(grassStartX, -0.01)
         }
-
-        ball.x = f32.add(ball.x, ball.vx)
-        ball.y = f32.add(ball.y, ball.vy)
-        drawBall(ball)
+        draw(grassStartX, grassStartY, grassScaleX, grassScaleY, spriteMap, spriteGrass)
 
         // ***********************************************************
-        // Draw Pipe
+        // DRAW PIPE
         // ***********************************************************
-
         randNum = randNumGenerator()
 
-        // *****************
-        // DRAW TOP PIPES
-        // *****************
         for k := 0; k < len(pTop); k++{
+            topPipeHeight = randNum
+            bottomPipeHeight = f32.sub(2.0,f32.add(topPipeHeight, pipeGap))
+
+            // ******************
+            // DRAW TOP PIPE
+            // ******************
             if f32.lteq(pTop[k].x, f32.sub(-1.0, pipeWidth)) { // If pipe goes pass left side of screen, restart onto the right
                 pTop[k].x = 1.0
-                pTop[k].h = randNum
+                pTop[k].h = topPipeHeight
+
+                // **********
+                // DEBUGGING
+                // **********
+                //str.print("Top Height")
+                //f32.print(topPipeHeight)
             } else {
                 pTop[k].x = f32.add(pTop[k].x, pTop[k].vx)
             }
-            drawPipe(pTop[k])
+            draw(pTop[k].x, pTop[k].y, pTop[k].w, pTop[k].h, spriteMap, spritePipeBody)
+            draw(pTop[k].x, f32.sub(pTop[k].y, pTop[k].h), f32.add(pTop[k].w, 0.01), pSkullHeightTop, spriteMap, spritePipeTop) // Drawing the skull on top of the pipe
 
+            // ******************
+            // DRAW BOTTOM PIPE
+            // ******************
             if f32.lteq(pBottom[k].x,  f32.sub(-1.0, pipeWidth)) {
                 pBottom[k].x = 1.0
-                pBottom[k].h = f32.sub(randNum, pipeGap)
+                pBottom[k].h = bottomPipeHeight
+
+                // **********
+                // DEBUGGING
+                // **********
+                //str.print("Bottom Height")
+                //f32.print(bottomPipeHeight)
             } else {
                 pBottom[k].x = f32.add(pBottom[k].x, pBottom[k].vx)
             }
-            drawPipe(pBottom[k])
+            draw(pBottom[k].x, pBottom[k].y, pBottom[k].w, pBottom[k].h, spriteMap, spritePipeBody)
+            draw(pBottom[k].x, f32.add(pBottom[k].y, pBottom[k].h), f32.add(pBottom[k].w, 0.01), pSkullHeightBottom, spriteMap, spritePipeTop) // Drawing the skull on top of the pipe
         }
+
+        // ***********************************************************
+        // Draw Bird
+        // ***********************************************************
+        // FLAPPING MOTION
+        frame = f64.add(frame, 0.1D)
+        if f64.gt(frame, 2.0D) {
+            frame = 0.0D
+        }
+
+        // HITTING FLOOR
+        if f32.lteq(bird.y, -1.0) {
+            //bird.vy = f32.abs(bird.vy) // If bird hits floor, bounce back
+            reset()
+
+        // HITTING FLOOR
+        } else if f32.gteq(bird.y, 1.0) {
+            //bird.vy = (-1.0 * bird.vy) // If bird hits top, bounce to bottom
+            reset()
+
+        // Let gravity do the work on the bird
+        } else {
+            bird.vy = f32.sub(bird.vy, bird.gravity)
+        }
+
+        bird.y = f32.add(bird.y, bird.vy)
+        draw(bird.x, bird.y, birdScaleX, birdScaleY, spriteMap, birdAnimation[f64.i32(frame)])
 
         // ***********************************************************
         // Refresh Components
@@ -373,3 +466,5 @@ func main () {
     str.print("Let there be light!")
     startGame(myWindow)
 }
+
+// https://stackoverflow.com/questions/6733934/what-does-immediate-mode-mean-in-opengl/36166310#36166310

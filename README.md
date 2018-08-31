@@ -1,15 +1,17 @@
-# CRAPPY VERSION OF FLAPPY BIRD A.K.A CRAPPYBALL-CX
+# CRAPPYBALL-CX v2.0 - A CRAPPY VERSION OF FLAPPY BIRD
 
 ![Gameplay Screenshot](https://github.com/atang152/crappyBall-cx/blob/master/Screenshot/CrappyBall.gif?raw=true)
 
 CrappyBall-cx is a clone to a popular game called FlappyBird and it is a simple 2D game written in cx. cx is a programming language developed by [Skycoin Team](https://www.skycoin.net/ "Skycoin"). Please note that I am not a developer for the Skycoin team but I do hold Skycoin through my own purchases. The game was developed as my interest to learn the CX language as well as to promote social awareness to Skycoin and their projects. Please note that most codes are based on examples developed and written by [amherag](https://github.com/amherag).
+
+This version 2.0 of CrappyBall-cx is my attempt to understand how to load sprites and render texture animation. Please note that current sprite images are all done, made and sourced from [Kilobolt](http://www.kilobolt.com/day-6-adding-graphics---welcome-to-the-necropolis.html). I didn't make the Sprite images and is simply using it for the time being until I can make something better.
 
 # INSTALL
 CrappyBall-cx requires [CX version 0.5.8](https://github.com/skycoin/cx) to run. In order to play it currently, you would need to install the necessary dependencies from https://github.com/skycoin/cx which includes Go, OpenGL and GLFW. Instructions below are from https://github.com/skycoin/cx for Debian-based Linux system. If you have CX installed, you could just skip these process and go straight to cloning the directory and running the game.
 
 ### Install GO
 1. Install Go (Version greater than 1.8 and 1.10)
-2. Congifure $GOPATH environment variable
+2. Configure $GOPATH environment variable
 
 ### Installing OpenGL/GLFW dependencies on Debian-based Linux system
 ```
@@ -47,12 +49,11 @@ or
 ```cx *.cx```
 
 # TO DO...
-Alot of things. The current codebase is utter crap and needs to be completely refractored. I am still in the process of learning the cx language... e.g
+Alot of things. The current codebase is utter crap and needs to be completely refractored. Sphagetti code everywhere. I am still in the process of learning the cx language... e.g
 
-1. Figure how to load sprites
-2. Refractor game into a more Entity-Component-System architecture
-3. Use VAO/VBO for rendering instead of OpenGL primitives
-4. Figure out how to build game into binary
+1. Refractor game into a more Entity-Component-System architecture
+2. Figure out how to use VAO/VBO for rendering instead of using OpenGL primitives
+3. Figure out how to build game into binary
 
 
 
