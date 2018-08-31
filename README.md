@@ -1,6 +1,6 @@
 # CRAPPYBALL-CX v2.0 - A CRAPPY VERSION OF FLAPPY BIRD
 
-![Gameplay Screenshot](https://github.com/atang152/crappyBall-cx/blob/master/Screenshot/CrappyBall.gif?raw=true)
+![Gameplay Screenshot](https://github.com/atang152/crappyBall-cx/blob/master/Screenshot/CrappyBall_v2.0.gif)
 
 CrappyBall-cx is a clone to a popular game called FlappyBird and it is a simple 2D game written in cx. cx is a programming language developed by [Skycoin Team](https://www.skycoin.net/ "Skycoin"). Please note that I am not a developer for the Skycoin team but I do hold Skycoin through my own purchases. The game was developed as my interest to learn the CX language as well as to promote social awareness to Skycoin and their projects. Please note that most codes are based on examples developed and written by [amherag](https://github.com/amherag).
 
