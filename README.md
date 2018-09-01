@@ -8,7 +8,7 @@ This new version of CrappyBall-cx is my attempt to understand how to load sprite
 
 As a small tribute to [Kittycash project](https://kittycash.io/home), I have added Pusheen the Cat as an alternative of the zombie bird sprite. All credit of the sprite goes to [ChinZaPep](https://www.deviantart.com/chinzapep/art/Go-on-a-diet-Nyan-Cat-306288626), I am once again using it for educational purposes only. If you wish to play as zombie bird, just uncomment out the lines to load the bird sprites and draw bird.
 
-![Gameplay Screenshot]()
+![Gameplay Screenshot](https://github.com/atang152/crappyBall-cx/blob/master/Screenshot/CrappyBall_v2.1.gif)
 
 # INSTALL
 CrappyBall-cx requires [CX version 0.5.11](https://github.com/skycoin/cx) to run. In order to play it currently, you would need to install the necessary dependencies from https://github.com/skycoin/cx which includes Go, OpenGL and GLFW. Instructions below are from https://github.com/skycoin/cx for Debian-based Linux system. If you have CX installed, you could just skip these process and go straight to cloning the directory and running the game.
