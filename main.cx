@@ -22,6 +22,7 @@ type Bird struct{
     vx f32
     vy f32
     gravity f32
+    radius f32
 }
 
 type Pipe struct {
@@ -40,7 +41,7 @@ type Pipe struct {
 
 // Sprites Map
 var spriteMap i32
-var spriteMapWidth i32 = 256
+var spriteMapWidth i32 = 400
 var spriteMapHeight i32 = 128
 
 // Bird Animation and Sprites
@@ -51,6 +52,15 @@ var spriteBird_Down Sprite
 var spriteBird_Mid Sprite
 var spriteBird_Up Sprite
 var birdAnimation [2]Sprite
+
+// Pusheen Cat Animation and Sprites
+var spritePusheen0 Sprite
+var spritePusheen1 Sprite
+var spritePusheen2 Sprite
+var spritePusheen3 Sprite
+var pusheenScaleX f32 = 0.07
+var pusheenScaleY f32 = 0.07
+var pusheenAnimation [3]Sprite
 
 // Pipe Sprite
 var spritePipeBody Sprite
@@ -84,6 +94,7 @@ var bird Bird
 var birdGravity f32 = 0.001
 var birdStartX f32 = -0.75
 var birdStartY f32 = 0.5
+var birdRadius f32 = 0.2
 
 // Pipe
 var randNum f32
@@ -124,7 +135,7 @@ func randNumGenerator() (rNum f32){
 }
 
 // *****************************************************************************************************
-// COLLISION DETECTION
+// COLLISION DETECTION -- Have to fix... need to incorporate radius of bird/cat
 // *****************************************************************************************************
 func collision(bird Bird, p Pipe) (){
 
@@ -132,7 +143,7 @@ func collision(bird Bird, p Pipe) (){
     // bird COLLIDING WITH TOP PIPE
     // ********************************
     if p.topPipe == true {
-        if bird.x >= p.x && bird.x <= (p.x + p.w) && f32.sub(f32.add(bird.y, 1.0),pSkullHeightTop) >= f32.sub(2.0, p.h) {
+        if bird.x >= p.x && bird.x <= (p.x + p.w) && f32.sub(f32.add(bird.y,1.0),pSkullHeightTop) >= f32.sub(2.0, p.h) {
             reset()
             str.print("Top Pipe")
             //f32.print(f32.add(bird.y, 1.0))
@@ -267,7 +278,8 @@ func startGame(mw Window) () {
         y: birdStartY,
         vx: 0.00, // Velocity in x direction
         vy: 0.00, // Velocity in y direction
-        gravity: birdGravity}
+        gravity: birdGravity,
+        radius: birdRadius}
 
     // **********************
     // TOP AND BOTTOM PIPES
@@ -306,9 +318,26 @@ func startGame(mw Window) () {
     spriteMap = gl.NewTexture(str.concat(wd, "textures/texture.png"))
 
     // ********************************
+    // RETRIEVE SPRITE REGION FOR PUSHEEN CAT
+    // https://www.deviantart.com/chinzapep/art/Go-on-a-diet-Nyan-Cat-306288626 - Credit ChinZaPep for sprite
+    // ********************************
+    spritePusheen0 = setSprite(spritePusheen0, 167, 232, 17, 62, spriteMapWidth, spriteMapHeight, spriteMap)
+    spritePusheen1 = setSprite(spritePusheen1, 167, 227, 67, 113, spriteMapWidth, spriteMapHeight, spriteMap)
+    spritePusheen2 = setSprite(spritePusheen2, 248, 313, 17, 63, spriteMapWidth, spriteMapHeight, spriteMap)
+    spritePusheen3 = setSprite(spritePusheen3, 248, 313, 67, 113, spriteMapWidth, spriteMapHeight, spriteMap)
+
+    pusheenAnimation[0] = spritePusheen0
+    pusheenAnimation[1] = spritePusheen1
+    pusheenAnimation[2] = spritePusheen2
+    pusheenAnimation[3] = spritePusheen3
+
+    // ********************************
     // RETRIEVE SPRITE REGION FOR BIRD
     // ********************************
     // Recall that setSprite(s Sprite, x1 i32, x2 i32, y1 i32, y2 i32, W i32, H i32, spriteMap i32)
+
+    //Uncomment to load Zombie
+    /* 
     spriteBird_Down = setSprite(spriteBird_Down, 136, 153, 0, 12, spriteMapWidth, spriteMapHeight, spriteMap)
     spriteBird_Mid = setSprite(spriteBird_Mid, 154, 170, 0, 12, spriteMapWidth, spriteMapHeight, spriteMap)
     spriteBird_Up = setSprite(spriteBird_Up, 171, 187, 0, 12, spriteMapWidth, spriteMapHeight, spriteMap)
@@ -316,6 +345,7 @@ func startGame(mw Window) () {
     birdAnimation[0] = spriteBird_Down
     birdAnimation[1] = spriteBird_Mid
     birdAnimation[2] = spriteBird_Up
+    */
 
     // ********************************
     // RETRIEVE SPRITE REGION FOR BACKGROUND, SKY AND GRASS
@@ -412,11 +442,17 @@ func startGame(mw Window) () {
         }
 
         // ***********************************************************
-        // Draw Bird
+        // Draw Bird or Pusheen
         // ***********************************************************
         // FLAPPING MOTION
         frame = f64.add(frame, 0.1D)
-        if f64.gt(frame, 2.0D) {
+        // For Zombie Bird
+        /*if f64.gt(frame, 2.0D) {
+            frame = 0.0D
+        }*/
+
+        // For Pusheen Cat
+        if f64.gt(frame, 3.0D) {
             frame = 0.0D
         }
 
@@ -436,7 +472,12 @@ func startGame(mw Window) () {
         }
 
         bird.y = f32.add(bird.y, bird.vy)
-        draw(bird.x, bird.y, birdScaleX, birdScaleY, spriteMap, birdAnimation[f64.i32(frame)])
+
+        // Draw Pusheen Cat
+        draw(bird.x, bird.y, pusheenScaleX, pusheenScaleY, spriteMap, pusheenAnimation[f64.i32(frame)])
+
+        // Draw Zombie Bird - Uncomment to draw zombie bird
+        //draw(bird.x, bird.y, birdScaleX, birdScaleY, spriteMap, birdAnimation[f64.i32(frame)])
 
         // ***********************************************************
         // Refresh Components
@@ -467,4 +508,4 @@ func main () {
     startGame(myWindow)
 }
 
-// https://stackoverflow.com/questions/6733934/what-does-immediate-mode-mean-in-opengl/36166310#36166310
+
