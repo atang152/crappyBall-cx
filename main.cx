@@ -1,5 +1,9 @@
 package main
 
+import "gl"
+import "glfw"
+import "os"
+
 // ***************************
 // STRUCTS
 // ***************************
@@ -131,7 +135,7 @@ func initOpenGL() (program i32) {
 
 // Random Number between 0.3 to 1.3
 func randNumGenerator() (rNum f32){
-    rNum = f32.div(i32.rand(3, 13), 10)
+    rNum = f32.div(i32.f32(i32.rand(3, 13)), 10.0)
 }
 
 // *****************************************************************************************************
