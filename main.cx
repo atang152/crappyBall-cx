@@ -316,10 +316,15 @@ func startGame(mw Window) () {
     }
 
     // ***************************
-    // LOAD SPRITE MAP
+    // LOAD SPRITE MAP AND FONTFILE
     // ***************************
     wd = os.GetWorkingDirectory()
     spriteMap = gl.NewTexture(str.concat(wd, "textures/texture.png"))
+
+    fontFile := str.concat(wd, "texture/fonts/roboto-light.ttf")
+    os.Open(fontFile)
+    gltext.LoadTrueType("Roboto50", fontFile, 50, 32, 127, gltext.LeftToRight)
+    os.Close(fontFile)
 
     // ********************************
     // RETRIEVE SPRITE REGION FOR PUSHEEN CAT
